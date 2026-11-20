@@ -1,16 +1,43 @@
-# Failure taxonomy v1: signals PipelineMedic matches against
+# Failure taxonomy v1: signals PipelineMedic matches against.
+# Each signal is a case-insensitive regex tested line by line.
+# Each type lists the extra evidence needed before a fix may be proposed.
 schema_drift:
-  signals: ["column .* not found", "invalid identifier", "type mismatch"]
+  signals:
+    - "column .* not found"
+    - "column .* does not exist"
+    - "invalid identifier"
+    - "type mismatch"
+    - "no such column"
+    - "cannot resolve .* given input columns"
+    - "UNRESOLVED_COLUMN"
   evidence: [upstream_commit, schema_diff]
 null_spike:
-  signals: ["not_null test failed", "null rate > threshold"]
+  signals:
+    - "not_null test failed"
+    - "null rate > threshold"
+    - "Failure in test not_null_"
+    - "null value in column .* violates not-null constraint"
   evidence: [column_null_pct_delta]
 expired_credentials:
-  signals: ["authentication failed", "permission denied", "token expired"]
+  signals:
+    - "authentication failed"
+    - "permission denied"
+    - "token expired"
+    - "invalid_grant"
+    - "401 Unauthorized"
+    - "ExpiredToken"
   evidence: [auth_error_line]
 late_upstream:
-  signals: ["freshness check failed", "0 rows in partition"]
+  signals:
+    - "freshness check failed"
+    - "0 rows in partition"
+    - "ERROR STALE"
+    - "AirflowSensorTimeout"
   evidence: [last_loaded_at]
 join_fanout:
-  signals: ["unique test failed", "row count increased > 10x"]
+  signals:
+    - "unique test failed"
+    - "row count increased > 10x"
+    - "Failure in test unique_"
+    - "duplicate key value violates unique constraint"
   evidence: [row_count_delta, join_keys]
