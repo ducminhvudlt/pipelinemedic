@@ -1,0 +1,16 @@
+# Failure taxonomy v1: signals PipelineMedic matches against
+schema_drift:
+  signals: ["column .* not found", "invalid identifier", "type mismatch"]
+  evidence: [upstream_commit, schema_diff]
+null_spike:
+  signals: ["not_null test failed", "null rate > threshold"]
+  evidence: [column_null_pct_delta]
+expired_credentials:
+  signals: ["authentication failed", "permission denied", "token expired"]
+  evidence: [auth_error_line]
+late_upstream:
+  signals: ["freshness check failed", "0 rows in partition"]
+  evidence: [last_loaded_at]
+join_fanout:
+  signals: ["unique test failed", "row count increased > 10x"]
+  evidence: [row_count_delta, join_keys]
