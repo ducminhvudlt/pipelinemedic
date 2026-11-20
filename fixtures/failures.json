@@ -1,0 +1,98 @@
+[
+  {
+    "id": "dbt-001",
+    "source": "dbt",
+    "log": "03:12:04 1 of 12 START sql table model analytics.fct_orders\n03:12:06 Database Error in model fct_orders (models/marts/fct_orders.sql)\n03:12:06   column \"customer_id\" does not exist\n03:12:06 1 of 12 ERROR creating sql table model analytics.fct_orders",
+    "expected": "schema_drift"
+  },
+  {
+    "id": "dbt-002",
+    "source": "dbt",
+    "log": "04:01:10 Failure in test not_null_orders_customer_id (models/marts/schema.yml)\n04:01:10   Got 4812 results, configured to fail if != 0",
+    "expected": "null_spike"
+  },
+  {
+    "id": "dbt-003",
+    "source": "dbt",
+    "log": "04:01:12 Failure in test unique_fct_orders_order_id (models/marts/schema.yml)\n04:01:12   Got 977 results, configured to fail if != 0",
+    "expected": "join_fanout"
+  },
+  {
+    "id": "dbt-004",
+    "source": "dbt",
+    "log": "05:00:01 Running with dbt=1.8.2\n05:00:03 ERROR STALE freshness of raw.stripe.charges\n05:00:03 max_loaded_at 2026-11-19 02:00:00, 27 hours ago",
+    "expected": "late_upstream"
+  },
+  {
+    "id": "snowflake-001",
+    "source": "dbt+snowflake",
+    "log": "Database Error in model stg_payments\n  000904 (42000): SQL compilation error: error line 12 at position 8\n  invalid identifier 'PAYMENT_METHOD_ID'",
+    "expected": "schema_drift"
+  },
+  {
+    "id": "airflow-001",
+    "source": "airflow",
+    "log": "[2026-11-20 03:00:00] INFO - Starting extract from postgres_source\n[2026-11-20 03:00:02] ERROR - psycopg2.OperationalError: FATAL: password authentication failed for user \"etl\"\n[2026-11-20 03:00:02] ERROR - Task failed with exception",
+    "expected": "expired_credentials"
+  },
+  {
+    "id": "airflow-002",
+    "source": "airflow",
+    "log": "[2026-11-20 02:00:00] INFO - Poking for file s3://raw/orders/dt=2026-11-20/_SUCCESS\n[2026-11-20 06:00:00] ERROR - airflow.exceptions.AirflowSensorTimeout: Sensor has timed out; run duration of 14400 seconds exceeds the specified timeout of 14400.",
+    "expected": "late_upstream"
+  },
+  {
+    "id": "airflow-003",
+    "source": "airflow",
+    "log": "[2026-11-20 03:10:00] INFO - Refreshing Google credentials\n[2026-11-20 03:10:01] ERROR - google.auth.exceptions.RefreshError: ('invalid_grant: Token has been expired or revoked.')",
+    "expected": "expired_credentials"
+  },
+  {
+    "id": "spark-001",
+    "source": "spark",
+    "log": "pyspark.sql.utils.AnalysisException: cannot resolve 'cust_segment' given input columns: [order_id, customer_id, amount, created_at]",
+    "expected": "schema_drift"
+  },
+  {
+    "id": "postgres-001",
+    "source": "postgres",
+    "log": "ERROR:  null value in column \"customer_id\" of relation \"orders\" violates not-null constraint\nDETAIL:  Failing row contains (1042, null, 19.99).",
+    "expected": "null_spike"
+  },
+  {
+    "id": "postgres-002",
+    "source": "postgres",
+    "log": "ERROR:  duplicate key value violates unique constraint \"orders_pkey\"\nDETAIL:  Key (order_id)=(88213) already exists.",
+    "expected": "join_fanout"
+  },
+  {
+    "id": "airflow-oom",
+    "source": "airflow",
+    "log": "[2026-11-20 03:00:00] INFO - Starting task\n[2026-11-20 03:05:12] ERROR - Task exited with return code -9",
+    "expected": null
+  },
+  {
+    "id": "spark-oom",
+    "source": "spark",
+    "log": "java.lang.OutOfMemoryError: Java heap space\n\tat org.apache.spark.sql.execution.joins.HashedRelation",
+    "expected": null
+  },
+  {
+    "id": "mixed-001",
+    "source": "dbt",
+    "log": "ERROR column \"region\" not found in source\nERROR permission denied for table raw.customers",
+    "expected": null
+  },
+  {
+    "id": "s3-403",
+    "source": "airflow",
+    "log": "[2026-11-20 03:00:01] ERROR - botocore.exceptions.ClientError: An error occurred (ExpiredToken) when calling the GetObject operation: The provided token has expired.",
+    "expected": "expired_credentials"
+  },
+  {
+    "id": "network-001",
+    "source": "airflow",
+    "log": "[2026-11-20 03:00:01] ERROR - requests.exceptions.ConnectionError: HTTPSConnectionPool(host='api.vendor.com', port=443): Max retries exceeded",
+    "expected": null
+  }
+]

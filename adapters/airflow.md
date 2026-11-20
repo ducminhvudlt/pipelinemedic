@@ -1,34 +1,20 @@
-# Airflow adapter (planned, week 2)
+# Airflow adapter
 
-dbt usually runs inside Airflow, so the Airflow adapter lets PipelineMedic explain a failure across both layers:
-*"Airflow task failed because dbt model X broke because commit Y renamed a column."*
+Implemented in [`pipelinemedic/integrations/airflow.py`](../pipelinemedic/integrations/airflow.py). Setup instructions are in the [README](../README.md#run-it-as-a-service-for-airflow).
 
-## How it plugs in
+## Flow
 
-1. **Trigger:** an `on_failure_callback` on the DAG sends `dag_id`, `run_id`, `task_id` and `try_number` to PipelineMedic.
-2. **Collect logs:** pull the task log through the Airflow REST API:
-   `GET /api/v1/dags/{dag_id}/dagRuns/{run_id}/taskInstances/{task_id}/logs/{try_number}`
-3. **dbt context:** if the failed task ran dbt, read `target/run_results.json` to get the failing model and its compiled SQL.
-4. **Classify:** run the log through `pipelinemedic.classify()` against `taxonomy.yaml`.
-5. **Report:** post the cited diagnosis to Slack. No citation means escalation.
-
-## Callback sketch
-
-```python
-def pipelinemedic_on_failure(context):
-    ti = context["task_instance"]
-    payload = {
-        "dag_id": ti.dag_id,
-        "run_id": context["run_id"],
-        "task_id": ti.task_id,
-        "try_number": ti.try_number,
-    }
-    # POST payload to the PipelineMedic service (to be built)
-```
+1. **Trigger:** `make_on_failure_callback(endpoint)` posts `dag_id`, `run_id`, `task_id` and `try_number` to the PipelineMedic service. It never raises.
+2. **Collect logs:** the service calls `fetch_task_log()`, which reads
+   `GET /api/v1/dags/{dag_id}/dagRuns/{run_id}/taskInstances/{task_id}/logs/{try_number}`.
+   Some Airflow 2 versions report the next try number inside failure callbacks, so it falls back to the previous one on a 404.
+3. **Classify and cite:** `diagnose()` runs the log against `taxonomy.yaml` and traces identifiers in git when `PIPELINEMEDIC_REPO` is set.
+4. **Report:** posts to Slack when `SLACK_WEBHOOK_URL` is set, and returns JSON either way.
 
 ## Status
 
-- [ ] Callback + payload
-- [ ] Log fetch via REST API
-- [ ] `run_results.json` parsing for dbt tasks
-- [ ] End-to-end test on a local Airflow
+- [x] Callback + payload
+- [x] Log fetch via REST API v1 (unit-tested with a mocked API)
+- [ ] dbt `run_results.json` pickup from inside Airflow tasks
+- [ ] End-to-end test against a live Airflow 2.x instance
+- [ ] Airflow 3 (REST API v2) support
