@@ -1,0 +1,15 @@
+[project]
+name = "pipelinemedic"
+version = "0.1.0"
+description = "An AI on-call assistant for data pipelines that refuses to guess."
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.10"
+dependencies = ["pyyaml>=6.0"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
